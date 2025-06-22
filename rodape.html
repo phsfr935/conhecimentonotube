@@ -1,1 +1,99 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Rodapé ConhecimentoNoTube</title>
+  <style>
+    * { box-sizing: border-box; }
+    html, body {
+      margin: 0;
+      padding: 0;
+      overflow-x: hidden;
+      font-family: Arial, sans-serif;
+    }
+    footer {
+      background: #f8f8f8;
+      color: #333;
+      padding: 40px 20px;
+      width: 100%;
+      font-size: 16px;
+      line-height: 1.6;
+      word-wrap: break-word;
+    }
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      width: 100%;
+    }
+    .container section {
+      flex: 1 1 100%;
+      margin: 10px 0;
+    }
+    .container a {
+      display: inline-block;
+      padding: 10px 15px;
+      background: #0066cc;
+      color: #fff;
+      text-decoration: none;
+      border-radius: 4px;
+      font-size: 16px;
+      width: auto;
+      max-width: 100%;
+      text-align: center;
+      word-break: break-word;
+    }
+    .legal {
+      text-align: center;
+      border-top: 1px solid #ddd;
+      margin-top: 30px;
+      padding-top: 20px;
+      font-size: 14px;
+    }
+    @media (max-width: 600px) {
+      .container {
+        flex-direction: column;
+      }
+      .container a {
+        width: 100%;
+      }
+    }
+  </style>
+</head>
+<body>
+  <footer id="rodape">
+    <div class="container">
+      <section>
+        <h4 style="margin-bottom: 10px; font-size: 20px;">
+          Newsletter – ConhecimentoNoTube
+        </h4>
+        <p style="margin-bottom: 15px;">
+          Conectando você a e-Books e cursos em finanças, saúde, viagens e desenvolvimento pessoal.
+        </p>
+        <a href="https://sites.google.com/view/conhecimentonotube/receba-novidades">
+          Quero receber novidades
+        </a>
+      </section>
+    </div>
+    <div class="legal">
+      <p style="margin: 5px 0;">
+        © 2025 ConhecimentoNoTube. Todos os direitos reservados.
+      </p>
+    </div>
+  </footer>
+
+  <script>
+    // Ajusta altura do iframe automaticamente
+    function reportSize() {
+      const h = document.documentElement.scrollHeight;
+      parent.postMessage({ type: 'resize', height: h }, '*');
+    }
+    window.addEventListener('load',  reportSize);
+    window.addEventListener('resize', reportSize);
+  </script>
+</body>
+</html>
 
