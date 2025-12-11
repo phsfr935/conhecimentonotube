@@ -1,136 +1,154 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Timer Vermelho Extremo</title>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Temporizador Vermelho Extremo</title>
+
 <style>
+  :root {
+    --bg: #ffe8e8;
+    --text: #c20000;
+    --card-bg: #fff;
+    --btn-color: #28a745;
+  }
+
   body {
-    font-family: Arial, sans-serif;
-    background: #111;
-    color: #fff;
+    margin: 0;
+    font-family: 'Roboto', sans-serif;
+    background: var(--bg);
     display: flex;
     justify-content: center;
     align-items: center;
-    height: 100vh;
-    margin: 0;
+    height: 100%;
   }
 
-  .timer-container { text-align: center; }
+  .wrap {
+    max-width: 760px;
+    width: 100%;
+    padding: 20px;
+    text-align: center;
+  }
+
+  .card {
+    background: var(--card-bg);
+    border-radius: 12px;
+    padding: 20px;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.08);
+    border: 1px solid #ffbfbf;
+  }
 
   #timer {
-    font-size: 4rem;
-    font-weight: bold;
-    color: #ff2b2b;
-    padding: 15px 25px;
-    border: 3px solid #ff2b2b;
-    border-radius: 15px;
+    font-size: 32px;
+    font-weight: 800;
+    color: var(--text);
+    padding: 10px 14px;
+    border-radius: 10px;
+    min-width: 200px;
     display: inline-block;
-    min-width: 260px;
+    margin-top: 10px;
+    background: #fff;
   }
 
-  /* Animações de urgência */
-  @keyframes pulse {
-    0% { transform: scale(1); }
-    50% { transform: scale(1.12); }
-    100% { transform: scale(1); }
-  }
-  @keyframes shake {
-    0% { transform: translateX(0); }
-    20% { transform: translateX(-6px); }
-    40% { transform: translateX(6px); }
-    60% { transform: translateX(-6px); }
-    80% { transform: translateX(6px); }
-    100% { transform: translateX(0); }
+  /* Botões da landin */
+  .cta {
+    display: inline-block;
+    background-color: var(--btn-color);
+    color: #fff;
+    font-size: 18px;
+    font-weight: 600;
+    padding: 16px 28px;
+    border-radius: 12px;
+    border: none;
+    text-decoration: none;
+    cursor: pointer;
+    margin-top: 15px;
   }
 
-  .pulse { animation: pulse 0.6s ease-in-out infinite; }
-  .shake { animation: shake 0.25s linear infinite; }
+  /* Mensagem de expirado */
+  #expired-msg {
+    display: none;
+    color: var(--text);
+    font-weight: 700;
+    margin-top: 16px;
+    font-size: 18px;
+  }
 
+  /* Animações */
+  @keyframes pulse { 0%{transform:scale(1);}50%{transform:scale(1.05);}100%{transform:scale(1);} }
+  @keyframes shake { 0%{transform:translateX(0);}20%{transform:translateX(-4px);}40%{transform:translateX(4px);}60%{transform:translateX(-4px);}80%{transform:translateX(4px);}100%{transform:translateX(0);} }
+
+  .pulse { animation: pulse 900ms ease-in-out infinite; }
+  .shake { animation: shake 300ms linear infinite; }
 </style>
 </head>
 <body>
-<div class="timer-container">
-  <div id="timer">00:00:00</div>
-</div>
+  <div class="wrap">
+    <div class="card" id="card">
+      <h2>⏳ Oferta Expira em:</h2>
+      <div id="timer" aria-live="polite" role="timer">00:00:00</div>
+      <div id="expired-msg">⛔ Oferta encerrada. Tente novamente em breve.</div>
+    </div>
+  </div>
 
 <script>
 (function(){
-  // CONFIGURAÇÃO
-  const TEMPO_OFERTA = 24*60*60*1000; // 24h
-  const COOLDOWN = 3*24*60*60*1000;   // 3 dias
-  const KEY_INICIO = 'oferta_inicio_extremo';
-  const KEY_ULTIMO = 'oferta_ultimo_extremo';
-
-  let agora = Date.now();
-
-  // Ler localStorage
-  let inicio = localStorage.getItem(KEY_INICIO);
-  let ultimo = localStorage.getItem(KEY_ULTIMO);
-
-  if(!inicio) {
-    inicio = agora;
-    localStorage.setItem(KEY_INICIO, inicio);
-  } else {
-    inicio = parseInt(inicio);
-  }
-
-  if(!ultimo) {
-    ultimo = agora;
-  } else {
-    ultimo = parseInt(ultimo);
-  }
-
-  // Se passou cooldown -> reset automático
-  if(agora - ultimo > COOLDOWN){
-    inicio = agora;
-    localStorage.setItem(KEY_INICIO, inicio);
-  }
-
-  localStorage.setItem(KEY_ULTIMO, agora);
-  let prazoFinal = inicio + TEMPO_OFERTA;
-
+  const TEMPO_OFERTA = 24 * 60 * 60 * 1000; // 24h
+  const COOLDOWN = 3 * 24 * 60 * 60 * 1000; // 3 dias
+  const KEY_INICIO = 'oferta_inicio_v2';
+  const KEY_EXP = 'oferta_expirado_v2';
   const timerEl = document.getElementById('timer');
+  const expiredMsg = document.getElementById('expired-msg');
+  const card = document.getElementById('card');
+  const ctaButtons = parent.document.querySelectorAll('.cta');
 
-  function formatDHMS(ms){
-    if(ms <= 0) return '00:00:00';
-    const s = Math.floor(ms/1000);
-    const h = Math.floor(s/3600);
-    const m = Math.floor((s%3600)/60);
-    const sec = s%60;
-    const hh = String(h).padStart(2,'0');
-    const mm = String(m).padStart(2,'0');
-    const ss = String(sec).padStart(2,'0');
-    return `${hh}:${mm}:${ss}`;
+  const now = () => Date.now();
+
+  let inicio = parseInt(localStorage.getItem(KEY_INICIO) || now());
+  let expirado = localStorage.getItem(KEY_EXP);
+
+  // Reset se passou cooldown
+  if (now() - inicio > COOLDOWN) {
+    inicio = now();
+    expirado = null;
+    localStorage.removeItem(KEY_EXP);
+  }
+  localStorage.setItem(KEY_INICIO, inicio);
+
+  const prazoFinal = inicio + TEMPO_OFERTA;
+
+  function applyExpired() {
+    expiredMsg.style.display = 'block';
+    timerEl.textContent = 'ENCERRADA';
+    ctaButtons.forEach(btn => btn.style.display = 'none');
+    card.classList.add('expired');
+    localStorage.setItem(KEY_EXP,'1');
   }
 
-  function tick(){
-    const now = Date.now();
-    let restante = prazoFinal - now;
-
-    // Expirado
-    if(restante <= 0){
-      timerEl.textContent = 'ENCERRADA';
-      timerEl.classList.remove('pulse','shake');
-      // Bloquear botões na landing page
-      try {
-        window.parent.document.querySelectorAll('.cta').forEach(btn => btn.style.display = 'none');
-      } catch(e){ /* ignorar erro em sandbox iFrame */ }
+  function tick() {
+    expirado = localStorage.getItem(KEY_EXP);
+    if(expirado){
+      applyExpired();
       return;
     }
 
-    // Mostrar tempo
-    timerEl.textContent = formatDHMS(restante);
-
-    // Animações de urgência
-    timerEl.classList.remove('pulse','shake');
-    if(restante <= 3000){
-      timerEl.classList.add('shake','pulse');
-    } else if(restante <= 10000){
-      timerEl.classList.add('shake');
-    } else if(restante <= 30000){
-      timerEl.classList.add('pulse');
+    const restante = prazoFinal - now();
+    if(restante <= 0){
+      applyExpired();
+      return;
     }
+
+    // Formatar HH:MM:SS
+    const h = String(Math.floor(restante/3600000)).padStart(2,'0');
+    const m = String(Math.floor((restante%3600000)/60000)).padStart(2,'0');
+    const s = String(Math.floor((restante%60000)/1000)).padStart(2,'0');
+    timerEl.textContent = `${h}:${m}:${s}`;
+
+    // Animations
+    timerEl.classList.remove('shake');
+    ctaButtons.forEach(b=>b.classList.remove('pulse'));
+    if(restante <= 30000) ctaButtons.forEach(b=>b.classList.add('pulse'));
+    if(restante <= 10000) timerEl.classList.add('shake');
 
     requestAnimationFrame(()=>setTimeout(tick,500));
   }
