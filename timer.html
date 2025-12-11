@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Timer Premium Extremo</title>
+<title>Timer Vermelho Extremo</title>
 <style>
   body {
     font-family: Arial, sans-serif;
@@ -15,25 +15,52 @@
     height: 100vh;
     margin: 0;
   }
+
   .timer-container { text-align: center; }
-  .time {
+
+  #timer {
     font-size: 4rem;
     font-weight: bold;
     color: #ff2b2b;
+    padding: 15px 25px;
+    border: 3px solid #ff2b2b;
+    border-radius: 15px;
+    display: inline-block;
+    min-width: 260px;
   }
+
+  /* Animações de urgência */
+  @keyframes pulse {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.12); }
+    100% { transform: scale(1); }
+  }
+  @keyframes shake {
+    0% { transform: translateX(0); }
+    20% { transform: translateX(-6px); }
+    40% { transform: translateX(6px); }
+    60% { transform: translateX(-6px); }
+    80% { transform: translateX(6px); }
+    100% { transform: translateX(0); }
+  }
+
+  .pulse { animation: pulse 0.6s ease-in-out infinite; }
+  .shake { animation: shake 0.25s linear infinite; }
+
 </style>
 </head>
 <body>
 <div class="timer-container">
-  <div id="timer" class="time"></div>
+  <div id="timer">00:00:00</div>
 </div>
 
 <script>
 (function(){
-  const TEMPO_OFERTA = 24 * 60 * 60 * 1000; // 24h
-  const COOLDOWN = 3 * 24 * 60 * 60 * 1000; // 3 dias
-  const KEY_INICIO = 'oferta_inicio_v2';
-  const KEY_ULTIMO = 'oferta_ultimo_v2';
+  // CONFIGURAÇÃO
+  const TEMPO_OFERTA = 24*60*60*1000; // 24h
+  const COOLDOWN = 3*24*60*60*1000;   // 3 dias
+  const KEY_INICIO = 'oferta_inicio_extremo';
+  const KEY_ULTIMO = 'oferta_ultimo_extremo';
 
   let agora = Date.now();
 
@@ -54,15 +81,16 @@
     ultimo = parseInt(ultimo);
   }
 
-  // Se passou cooldown -> reset
+  // Se passou cooldown -> reset automático
   if(agora - ultimo > COOLDOWN){
     inicio = agora;
     localStorage.setItem(KEY_INICIO, inicio);
   }
 
   localStorage.setItem(KEY_ULTIMO, agora);
+  let prazoFinal = inicio + TEMPO_OFERTA;
 
-  const prazoFinal = inicio + TEMPO_OFERTA;
+  const timerEl = document.getElementById('timer');
 
   function formatDHMS(ms){
     if(ms <= 0) return '00:00:00';
@@ -80,18 +108,31 @@
     const now = Date.now();
     let restante = prazoFinal - now;
 
-    const timerEl = document.getElementById('timer');
-
+    // Expirado
     if(restante <= 0){
       timerEl.textContent = 'ENCERRADA';
-      // Bloquear botão da landing page
-      window.parent?.document.querySelectorAll('.cta').forEach(btn => btn.style.display = 'none');
+      timerEl.classList.remove('pulse','shake');
+      // Bloquear botões na landing page
+      try {
+        window.parent.document.querySelectorAll('.cta').forEach(btn => btn.style.display = 'none');
+      } catch(e){ /* ignorar erro em sandbox iFrame */ }
       return;
     }
 
+    // Mostrar tempo
     timerEl.textContent = formatDHMS(restante);
 
-    requestAnimationFrame(()=> setTimeout(tick, 500));
+    // Animações de urgência
+    timerEl.classList.remove('pulse','shake');
+    if(restante <= 3000){
+      timerEl.classList.add('shake','pulse');
+    } else if(restante <= 10000){
+      timerEl.classList.add('shake');
+    } else if(restante <= 30000){
+      timerEl.classList.add('pulse');
+    }
+
+    requestAnimationFrame(()=>setTimeout(tick,500));
   }
 
   tick();
